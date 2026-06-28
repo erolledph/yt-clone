@@ -213,14 +213,11 @@ window.addEventListener('popstate', handleRoute);
 
 function handleRoute() {
   clearInterval(refreshTimer);
-  closeShortsPlayer();
   if (ytPlayer && typeof ytPlayer.destroy === 'function' && currentView !== 'player') { try { ytPlayer.destroy(); } catch {} ytPlayer = null; }
   const path = location.pathname;
   const params = new URLSearchParams(location.search);
-  if (path.startsWith('/shorts/')) { const id = path.split('/')[2]; if (id) openShortsPlayer(id); }
-  else if (path === '/watch') { const id = params.get('v'); if (id) loadPlayer(id); }
+  if (path === '/watch') { const id = params.get('v'); if (id) loadPlayer(id); }
   else if (path === '/search') { const q = params.get('q'); if (q) loadSearch(q); }
-  else if (path === '/shorts') { loadShortsFeed(); }
   else loadHome();
   window.scrollTo(0, 0);
 }
@@ -277,7 +274,6 @@ async function loadHome() {
   app.innerHTML = `
     <div class="nav-tabs">
       <div class="nav-tab active" onclick="navigate('/')">Home</div>
-      <div class="nav-tab" onclick="navigate('/shorts')">Shorts</div>
     </div>
     <div class="tags-bar" id="tagsBar">
       ${tags.map(t => `<button class="tag${t.id === 'trending' ? ' active' : ''}" data-id="${t.id}" data-q="${t.query}" onclick="clickTag(this)">${t.label}</button>`).join('')}
@@ -321,7 +317,6 @@ async function loadSearch(q) {
   app.innerHTML = `
     <div class="nav-tabs">
       <div class="nav-tab active" onclick="navigate('/')">Home</div>
-      <div class="nav-tab" onclick="navigate('/shorts')">Shorts</div>
     </div>
     <div class="search-header">Results for <strong>"${escHtml(q)}"</strong></div>
     <div class="grid" id="grid">${renderSkeletons(8)}</div>
