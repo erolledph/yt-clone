@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Player - YouTube Video Player</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YT Player</h1>
+            <p>Play YouTube videos with custom player controls</p>
+        </header>
+
+        <main>
+            <section class="video-player-section">
+                <div class="video-container">
+                    <div id="video-player">
+                        <div class="video-placeholder">
+                            <h3>Select a video to play</h3>
+                            <p>Choose a video from the list to start playing</p>
+                        </div>
+                    </div>
+                    <div class="video-info" id="current-video-info">
+                        <h3 id="video-title">Video Title</h3>
+                        <p id="video-desc">Video description will appear here</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="video-list-section">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Search channel...">
+                    <button id="search-btn">Search</button>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab active" data-filter="videos">Videos</button>
+                    <button class="tab" data-filter="shorts">Shorts</button>
+                    <button class="tab" data-filter="streams">Streams</button>
+                    <button class="tab" data-filter="live">Live</button>
+                </div>
+
+                <div class="video-grid" id="video-grid">
+                    <div class="loading">Loading videos...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
