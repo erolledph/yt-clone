@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>YT Clone - Philippines</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='red'><path d='M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5V8.5l6.5 3.5-6.5 3.5z'/></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0f0f0f;--bg2:#212121;--bg3:#333;--text:#f1f1f1;--text2:#aaa;--text3:#717171;--red:#ff0000;--border:rgba(255,255,251,.1);--chip:#272727;--chip-active:#f1f1f1;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,.3)}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Roboto','Arial',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block}
+button{font-family:inherit}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
+
+.header{position:sticky;top:0;z-index:100;background:var(--bg);padding:8px 16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border)}
+.header.hidden{display:none}
+.logo{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.logo svg{width:28px;height:20px}
+.logo span{background:linear-gradient(135deg,#ff4444,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.search-wrap{flex:1;max-width:640px;display:flex;position:relative}
+.search-wrap input{flex:1;padding:10px 16px;border:1px solid var(--border);border-radius:24px 0 0 24px;background:var(--bg2);color:var(--text);font-size:15px;outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:#3ea6ff}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap button{padding:10px 24px;border:1px solid var(--border);border-left:none;border-radius:0 24px 24px 0;background:var(--chip);color:var(--text);cursor:pointer;font-size:15px;transition:background .15s}
+.search-wrap button:hover{background:var(--bg3)}
+.suggestions{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border-radius:var(--radius);max-height:400px;overflow-y:auto;display:none;z-index:200;box-shadow:var(--shadow);border:1px solid var(--border)}
+.suggestions.show{display:block}
+.suggestions div{padding:10px 16px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;transition:background .1s}
+.suggestions div:hover{background:var(--bg3)}
+
+.tags-bar{display:flex;gap:8px;padding:16px 0;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tags-bar::-webkit-scrollbar{display:none}
+.tag{padding:8px 16px;border-radius:8px;background:var(--chip);color:var(--text);border:none;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;transition:all .15s}
+.tag:hover{background:var(--bg3)}
+.tag.active{background:var(--chip-active);color:var(--bg);font-weight:600}
+
+.main{max-width:1400px;margin:0 auto;padding:0 16px 32px}
+
+.nav-tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:1px solid var(--border)}
+.nav-tab{padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;transition:all .15s}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--red)}
+
+.grid{display:grid;grid-template-columns:repeat(1,1fr);gap:20px 16px}
+.card{cursor:pointer;border-radius:var(--radius);overflow:hidden;background:transparent;transition:transform .15s}
+.card:hover{transform:scale(1.02)}
+.card .thumb-wrap{position:relative;width:100%;border-radius:var(--radius);overflow:hidden;background:var(--bg2)}
+.card .thumb{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.card .length{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.85);color:#fff;padding:2px 6px;border-radius:4px;font-size:12px;font-weight:500}
+.card .info{display:flex;gap:12px;padding:12px 0 0}
+.card .details{flex:1;min-width:0}
+.card .title{font-size:14px;font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text)}
+.card .channel{font-size:12px;color:var(--text2);margin-top:4px}
+.card .meta{font-size:12px;color:var(--text2)}
+
+.shorts-feed{display:flex;flex-direction:column;align-items:center;gap:20px;padding:16px 0}
+.short-card{width:100%;max-width:340px;aspect-ratio:9/16;border-radius:16px;overflow:hidden;position:relative;cursor:pointer;background:#000;box-shadow:var(--shadow)}
+.short-card img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.short-card:hover img{transform:scale(1.03)}
+.short-card .overlay{position:absolute;bottom:0;left:0;right:0;padding:48px 16px 16px;background:linear-gradient(transparent,rgba(0,0,0,.9))}
+.short-card .short-title{font-size:14px;font-weight:500;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.short-card .short-meta{font-size:12px;color:var(--text2)}
+.short-card .play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:transform .2s}
+.short-card:hover .play-icon{transform:translate(-50%,-50%) scale(1.1)}
+.short-card .play-icon::after{content:'';border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:3px}
+
+.shorts-player{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:999;display:flex;align-items:center;justify-content:center}
+.shorts-player .sp-close{position:absolute;top:12px;left:12px;z-index:10;width:40px;height:40px;background:rgba(0,0,0,.6);border-radius:50%;border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:background .15s}
+.shorts-player .sp-close:hover{background:rgba(0,0,0,.9)}
+.shorts-player .sp-iframe{width:100%;max-width:405px;height:100%;max-height:calc(100vh - 80px);border:none;border-radius:0}
+.shorts-player .sp-nav{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:10}
+.shorts-player .sp-nav button{width:42px;height:42px;background:rgba(0,0,0,.55);border-radius:50%;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:background .15s}
+.shorts-player .sp-nav button:hover{background:rgba(0,0,0,.9)}
+.shorts-player .sp-nav button:disabled{opacity:.25;cursor:not-allowed}
+.shorts-player .sp-info{position:absolute;bottom:12px;left:12px;right:72px;z-index:10}
+.shorts-player .sp-title{font-size:14px;font-weight:500;line-height:1.3;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.shorts-player .sp-meta{font-size:12px;color:var(--text2)}
+
+.player-page{display:flex;gap:24px;padding-top:8px}
+.player-main{flex:1;min-width:0}
+.player-main #ytPlayerDiv{width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;background:#000}
+.player-title{font-size:20px;font-weight:600;margin-top:16px;line-height:1.3}
+.player-meta{font-size:13px;color:var(--text2);margin-top:10px}
+.player-meta .pm-channel{color:var(--text);font-weight:500}
+.player-desc{font-size:13px;color:var(--text2);margin-top:12px;padding:12px 14px;background:var(--bg2);border-radius:var(--radius);white-space:pre-wrap;line-height:1.6;cursor:pointer;max-height:80px;overflow:hidden;transition:max-height .3s}
+.player-desc.expanded{max-height:none}
+
+.player-sidebar{width:400px;display:flex;flex-direction:column;gap:8px}
+.sidebar-title{font-size:16px;font-weight:600;padding:0 0 8px;color:var(--text)}
+.sidebar-card{display:flex;gap:8px;cursor:pointer;border-radius:8px;overflow:hidden;padding:4px;transition:background .15s}
+.sidebar-card:hover{background:var(--chip)}
+.sidebar-card .sb-thumb{width:168px;min-width:168px;height:94px;object-fit:cover;border-radius:8px;background:var(--bg3)}
+.sidebar-card .sb-info{padding:2px 4px}
+.sidebar-card .sb-title{font-size:13px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sidebar-card .sb-meta{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.3}
+
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;background:var(--chip);color:var(--text);border:none;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:16px;transition:background .15s}
+.back-btn:hover{background:var(--bg3)}
+
+.loading{text-align:center;padding:48px;color:var(--text2);font-size:14px}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--bg3);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty h3{font-size:18px;margin-bottom:8px;color:var(--text)}
+.empty p{font-size:13px;color:var(--text3)}
+
+.skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-thumb{width:100%;aspect-ratio:16/9;border-radius:var(--radius)}
+.skel-title{height:14px;width:80%;margin:10px 0 6px;border-radius:4px}
+.skel-meta{height:12px;width:50%;border-radius:4px}
+
+.search-header{padding:16px 0 4px;font-size:16px;color:var(--text2);font-weight:500}
+.search-header strong{color:var(--text)}
+
+@media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1200px){.grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:1100px){.player-page{flex-direction:column}.player-sidebar{width:100%}.sidebar-card .sb-thumb{width:240px;min-width:240px;height:135px}}
+@media(max-width:600px){
+  .header{padding:6px 10px;gap:8px}
+  .logo{font-size:16px}.logo svg{width:24px;height:16px}
+  .search-wrap input{padding:8px 12px;font-size:14px}
+  .search-wrap button{padding:8px 16px;font-size:14px}
+  .nav-tab{padding:12px 16px;font-size:13px}
+  .player-title{font-size:16px;margin-top:12px}
+  .player-main #ytPlayerDiv{border-radius:0}
+  .sidebar-card .sb-thumb{width:140px;min-width:140px;height:78px}
+  .short-card{max-width:100%;border-radius:0}
+  .shorts-player .sp-iframe{max-width:100%}
+  .shorts-player .sp-nav{right:8px}
+  .shorts-player .sp-info{right:56px}
+  .card .info{gap:8px}
+  .main{padding:0 10px 24px}
+}
+</style>
+</head>
+<body>
+
+<div class="header" id="header">
+  <div class="logo" onclick="navigate('/')">
+    <svg viewBox="0 0 90 64" fill="none"><rect width="90" height="64" rx="14" fill="#FF0000"/><path d="M36 20L60 32L36 44V20Z" fill="white"/></svg>
+    <span>YT Clone</span>
+  </div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search..." autocomplete="off">
+    <button onclick="doSearch()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    </button>
+    <div class="suggestions" id="suggestBox"></div>
+  </div>
+</div>
+
+<div class="main" id="app">
+  <div class="loading"><div class="spinner"></div><p style="margin-top:12px">Loading...</p></div>
+</div>
+
+<script>
+const API = 'https://tes-omega-sand.vercel.app';
+let currentView = 'home';
+let suggestTimeout = null;
+let currentTag = null;
+let refreshTimer = null;
+let shortsToken = null;
+let shortsLoading = false;
+let shortsQuery = 'shorts';
+let shortsList = [];
+let shortsIndex = 0;
+let ytPlayer = null;
+let ytPlayerReady = false;
+
+const tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+function onYouTubeIframeAPIReady() { ytPlayerReady = true; }
+
+const searchInput = document.getElementById('searchInput');
+const suggestBox = document.getElementById('suggestBox');
+
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+searchInput.addEventListener('input', () => {
+  clearTimeout(suggestTimeout);
+  const q = searchInput.value.trim();
+  if (!q) { suggestBox.classList.remove('show'); return; }
+  suggestTimeout = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API}/api/suggest?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (data.suggestions.length) {
+        suggestBox.innerHTML = data.suggestions.map(s =>
+          `<div onclick="searchFor('${s.replace(/'/g, "\\'")}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="#aaa"><path d="M15.5 14h-.79l-.28-.27A5.45 5.45 0 0016 11.5 5.5 5.5 0 1010.5 17c1.33 0 2.56-.47 3.52-1.25l.27.28v.79l4.25 4.25L20.24 19l-4.25-4.25zM10.5 15C7.46 15 5 12.54 5 9.5S7.46 4 10.5 4 16 6.46 16 9.5 13.54 15 10.5 15z"/></svg>${escHtml(s)}</div>`
+        ).join('');
+        suggestBox.classList.add('show');
+      } else suggestBox.classList.remove('show');
+    } catch { suggestBox.classList.remove('show'); }
+  }, 200);
+});
+
+document.addEventListener('click', e => {
+  if (!suggestBox.contains(e.target) && e.target !== searchInput) suggestBox.classList.remove('show');
+});
+
+function searchFor(q) { searchInput.value = q; suggestBox.classList.remove('show'); doSearch(); }
+function doSearch() { const q = searchInput.value.trim(); if (q) navigate('/search?q=' + encodeURIComponent(q)); }
+function navigate(path) { history.pushState(null, '', path); handleRoute(); }
+window.addEventListener('popstate', handleRoute);
+
+function handleRoute() {
+  clearInterval(refreshTimer);
+  closeShortsPlayer();
+  if (ytPlayer && typeof ytPlayer.destroy === 'function' && currentView !== 'player') { try { ytPlayer.destroy(); } catch {} ytPlayer = null; }
+  const path = location.pathname;
+  const params = new URLSearchParams(location.search);
+  if (path.startsWith('/shorts/')) { const id = path.split('/')[2]; if (id) openShortsPlayer(id); }
+  else if (path === '/watch') { const id = params.get('v'); if (id) loadPlayer(id); }
+  else if (path === '/search') { const q = params.get('q'); if (q) loadSearch(q); }
+  else if (path === '/shorts') { loadShortsFeed(); }
+  else loadHome();
+  window.scrollTo(0, 0);
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function getChannelInitial(name) { return (name || '?')[0].toUpperCase(); }
+function renderChannelAvatar(name) {
+  const colors = ['#e53935','#8e24aa','#1e88e5','#00897b','#43a047','#fb8c00','#6d4c41','#546e7a'];
+  const c = colors[(name || '').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0) % colors.length];
+  return `<div style="width:36px;height:36px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;flex-shrink:0">${getChannelInitial(name)}</div>`;
+}
+
+function renderGrid(videos) {
+  const grid = document.getElementById('grid');
+  if (!videos.length) { grid.innerHTML = '<div class="empty"><h3>No videos found</h3><p>Try a different search or category</p></div>'; return; }
+  grid.innerHTML = videos.map(v => `
+    <div class="card" onclick="navigate('/watch?v=${v.videoId}')">
+      <div class="thumb-wrap">
+        <img class="thumb" src="https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg" alt="" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg'">
+        ${v.length ? `<span class="length">${v.length}</span>` : ''}
+      </div>
+      <div class="info">
+        ${renderChannelAvatar(v.channelTitle || v.channelName)}
+        <div class="details">
+          <div class="title">${escHtml(v.title)}</div>
+          <div class="channel">${escHtml(v.channelTitle || v.channelName || '')}</div>
+          <div class="meta">${v.viewCount ? v.viewCount : ''}${v.published ? ' · ' + v.published : ''}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSkeletons(count) {
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += `<div class="card"><div class="skeleton skel-thumb"></div><div class="info"><div style="flex:1"><div class="skeleton skel-title"></div><div class="skeleton skel-meta"></div></div></div></div>`;
+  }
+  return html;
+}
+
+async function loadTags() {
+  try { const res = await fetch(`${API}/api/tags`); const data = await res.json(); return data.tags || []; }
+  catch { return []; }
+}
+
+async function loadHome() {
+  currentView = 'home';
+  currentTag = null;
+  shortsToken = null;
+  const tags = await loadTags();
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="navigate('/')">Home</div>
+      <div class="nav-tab" onclick="navigate('/shorts')">Shorts</div>
+    </div>
+    <div class="tags-bar" id="tagsBar">
+      ${tags.map(t => `<button class="tag${t.id === 'trending' ? ' active' : ''}" data-id="${t.id}" data-q="${t.query}" onclick="clickTag(this)">${t.label}</button>`).join('')}
+    </div>
+    <div class="grid" id="grid">${renderSkeletons(8)}</div>
+  `;
+  loadTrending();
+  startAutoRefresh();
+}
+
+function startAutoRefresh() {
+  clearInterval(refreshTimer);
+  let countdown = 58;
+  refreshTimer = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) { countdown = 58; if (currentView === 'home' && !currentTag) loadTrending(); }
+  }, 1000);
+}
+
+async function clickTag(el) {
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTag = el.dataset.q;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = renderSkeletons(8);
+  try {
+    const res = await fetch(`${API}/api/search?q=${encodeURIComponent(currentTag)}`);
+    const data = await res.json();
+    renderGrid(data.videos || []);
+  } catch { grid.innerHTML = '<div class="empty"><h3>Failed to load</h3></div>'; }
+}
+
+async function loadTrending() {
+  try { const res = await fetch(`${API}/api/trending`); const data = await res.json(); renderGrid(data.videos || []); } catch {}
+}
+
+async function loadSearch(q) {
+  currentView = 'search';
+  shortsToken = null;
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="navigate('/')">Home</div>
+      <div class="nav-tab" onclick="navigate('/shorts')">Shorts</div>
+    </div>
+    <div class="search-header">Results for <strong>"${escHtml(q)}"</strong></div>
+    <div class="grid" id="grid">${renderSkeletons(8)}</div>
+  `;
+  try {
+    const res = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    renderGrid(data.videos || []);
+  } catch { document.getElementById('grid').innerHTML = '<div class="empty"><h3>Search failed</h3></div>'; }
+}
+
+async function loadShortsFeed() {
+  currentView = 'shorts';
+  shortsToken = null;
+  shortsList = [];
+  const app = document.getElementById('app');
+  const randomShortsQuery = ['viral shorts','trending shorts','funny shorts','amazing shorts','shorts 2026','tiktok style','viral moments','daily shorts'][Math.floor(Math.random() * 8)];
+  app.innerHTML = `
+    <div class="nav-tabs">
+      <div class="nav-tab" onclick="navigate('/')">Home</div>
+      <div class="nav-tab active" onclick="navigate('/shorts')">Shorts</div>
+    </div>
+    <div class="shorts-feed" id="shortsFeed"></div>
+  `;
+  shortsQuery = randomShortsQuery;
+  await loadMoreShorts();
+  if (shortsList.length) openShortsPlayerByIdx(0);
+}
+
+async function loadMoreShorts() {
+  if (shortsLoading) return;
+  shortsLoading = true;
+  const feed = document.getElementById('shortsFeed');
+  if (!feed) { shortsLoading = false; return; }
+  const loader = document.createElement('div');
+  loader.className = 'loading';
+  loader.innerHTML = '<div class="spinner"></div>';
+  feed.appendChild(loader);
+  try {
+    let url = shortsToken
+      ? `${API}/api/search/shorts?token=${encodeURIComponent(shortsToken)}`
+      : `${API}/api/search/shorts?q=${encodeURIComponent(shortsQuery)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    loader.remove();
+    if (data.videos?.length) {
+      shortsList.push(...data.videos);
+      for (let i = shortsList.length - data.videos.length; i < shortsList.length; i++) {
+        const v = shortsList[i];
+        const card = document.createElement('div');
+        card.className = 'short-card';
+        card.onclick = () => openShortsPlayerByIdx(i);
+        card.innerHTML = `
+          <img src="https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg" alt="" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg'">
+          <div class="play-icon"></div>
+          <div class="overlay">
+            <div class="short-title">${escHtml(v.title)}</div>
+            <div class="short-meta">${escHtml(v.channelTitle || '')} ${v.viewCount ? '· ' + v.viewCount : ''}</div>
+          </div>
+        `;
+        feed.appendChild(card);
+      }
+      shortsToken = data.continuationToken;
+    }
+    if (!data.videos?.length && !shortsToken) {
+      if (!feed.children.length || feed.children.length <= 1) feed.innerHTML = '<div class="empty"><h3>No shorts found</h3></div>';
+    }
+  } catch { loader.remove(); }
+  shortsLoading = false;
+}
+
+function openShortsPlayerByIdx(idx) {
+  shortsIndex = idx;
+  const v = shortsList[idx];
+  if (!v) return;
+  openShortsPlayerWithNav(v.videoId, v.title, v.channelTitle);
+}
+
+function openShortsPlayer(videoId) {
+  openShortsPlayerWithNav(videoId, '', '');
+}
+
+function openShortsPlayerWithNav(videoId, title, channel) {
+  document.getElementById('header').classList.add('hidden');
+  document.getElementById('app').style.display = 'none';
+  const existing = document.getElementById('shortsPlayer');
+  if (existing) existing.remove();
+
+  const allIds = shortsList.length ? shortsList.map(v => v.videoId) : [videoId];
+  const idx = allIds.indexOf(videoId);
+  shortsIndex = idx >= 0 ? idx : 0;
+
+  const currentTitle = title || (shortsList[shortsIndex]?.title || '');
+  const currentChannel = channel || (shortsList[shortsIndex]?.channelTitle || '');
+
+  const player = document.createElement('div');
+  player.className = 'shorts-player';
+  player.id = 'shortsPlayer';
+  player.innerHTML = `
+    <button class="sp-close" onclick="closeShortsPlayer()" title="Close">&#x2715;</button>
+    <div class="sp-iframe" id="spPlayerDiv"></div>
+    <div class="sp-nav">
+      <button onclick="navShort(-1)" id="spUp" ${shortsIndex <= 0 ? 'disabled' : ''}>&#9650;</button>
+      <button onclick="navShort(1)" id="spDown" ${shortsIndex >= allIds.length - 1 && !shortsToken ? 'disabled' : ''}>&#9660;</button>
+    </div>
+    <div class="sp-info">
+      <div class="sp-title">${escHtml(currentTitle)}</div>
+      <div class="sp-meta">${escHtml(currentChannel)}</div>
+    </div>
+  `;
+  document.body.appendChild(player);
+
+  function createShortsYTPlayer() {
+    if (!ytPlayerReady || !document.getElementById('spPlayerDiv')) { setTimeout(createShortsYTPlayer, 100); return; }
+    ytPlayer = new YT.Player('spPlayerDiv', {
+      videoId, playerVars: { autoplay:1,playsinline:1,rel:0,modestbranding:1,controls:0,showinfo:0,iv_load_policy:3,fs:0,disablekb:1,cc_load_policy:0,hidecontrols:1,theme:'dark',color:'red' },
+      events: { onReady: (e) => { try { e.target.playVideo(); } catch {} setTimeout(() => { try { e.target.playVideo(); } catch {} }, 400); } }
+    });
+  }
+  createShortsYTPlayer();
+
+  const handleKey = (e) => {
+    if (!document.getElementById('shortsPlayer')) { document.removeEventListener('keydown', handleKey); return; }
+    if (e.key === 'ArrowUp') navShort(-1);
+    else if (e.key === 'ArrowDown') navShort(1);
+    else if (e.key === 'Escape') closeShortsPlayer();
+  };
+  document.addEventListener('keydown', handleKey);
+}
+
+function navShort(dir) {
+  const newIdx = shortsIndex + dir;
+  if (newIdx < 0) return;
+  if (newIdx >= shortsList.length && shortsToken) {
+    loadMoreShorts().then(() => {
+      if (newIdx < shortsList.length) { shortsIndex = newIdx; updateShortsPlayer(shortsList[newIdx]); }
+    });
+    return;
+  }
+  if (newIdx >= shortsList.length) return;
+  shortsIndex = newIdx;
+  updateShortsPlayer(shortsList[newIdx]);
+}
+
+function updateShortsPlayer(v) {
+  const title = document.querySelector('.sp-title');
+  const channel = document.querySelector('.sp-meta');
+  if (title) title.textContent = v.title || '';
+  if (channel) channel.textContent = v.channelTitle || '';
+  if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+    try { ytPlayer.loadVideoById(v.videoId); } catch {}
+  } else {
+    const div = document.getElementById('spPlayerDiv');
+    if (div) {
+      div.innerHTML = '';
+      function recreate() {
+        if (!ytPlayerReady || !document.getElementById('spPlayerDiv')) { setTimeout(recreate, 100); return; }
+        ytPlayer = new YT.Player('spPlayerDiv', {
+          videoId: v.videoId, playerVars: { autoplay:1,playsinline:1,rel:0,modestbranding:1,controls:0,showinfo:0,iv_load_policy:3,fs:0,disablekb:1,cc_load_policy:0,hidecontrols:1,theme:'dark',color:'red' },
+          events: { onReady: (e) => { try { e.target.playVideo(); } catch {} setTimeout(() => { try { e.target.playVideo(); } catch {} }, 400); } }
+        });
+      }
+      recreate();
+    }
+  }
+  const up = document.getElementById('spUp');
+  const down = document.getElementById('spDown');
+  if (up) up.disabled = shortsIndex <= 0;
+  if (down) down.disabled = shortsIndex >= shortsList.length - 1 && !shortsToken;
+  history.replaceState(null, '', `/shorts/${v.videoId}`);
+}
+
+function closeShortsPlayer() {
+  if (ytPlayer && typeof ytPlayer.destroy === 'function') { try { ytPlayer.destroy(); } catch {} ytPlayer = null; }
+  const p = document.getElementById('shortsPlayer');
+  if (p) p.remove();
+  document.getElementById('header').classList.remove('hidden');
+  document.getElementById('app').style.display = '';
+}
+
+function setupShortsScroll() {
+  window.addEventListener('scroll', () => {
+    if (currentView !== 'shorts' || !shortsToken || shortsLoading) return;
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) loadMoreShorts();
+  });
+}
+
+async function loadPlayer(videoId) {
+  currentView = 'player';
+  shortsToken = null;
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <button class="back-btn" onclick="history.back()">&#8592; Back</button>
+    <div class="player-page">
+      <div class="player-main">
+        <div id="ytPlayerDiv"></div>
+        <div class="player-title" id="pTitle"><div class="spinner"></div></div>
+        <div class="player-meta" id="pMeta"></div>
+        <div class="player-desc" id="pDesc" style="display:none" onclick="this.classList.toggle('expanded')"></div>
+      </div>
+      <div class="player-sidebar" id="pSidebar"><div class="sidebar-title">Related</div><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  `;
+  function createMainYTPlayer() {
+    if (!ytPlayerReady || !document.getElementById('ytPlayerDiv')) return;
+    ytPlayer = new YT.Player('ytPlayerDiv', {
+      videoId, playerVars: { autoplay:1,rel:0,modestbranding:1,playsinline:1,controls:1,showinfo:0,iv_load_policy:3,fs:1,color:'red',theme:'dark' },
+      events: { onReady: (e) => { try { e.target.playVideo(); } catch {} } }
+    });
+  }
+  createMainYTPlayer();
+  loadVideoInfo(videoId);
+  loadRelated(videoId);
+}
+
+async function loadVideoInfo(videoId) {
+  try {
+    const res = await fetch(`${API}/api/video/${videoId}`);
+    const data = await res.json();
+    document.getElementById('pTitle').textContent = data.title || '';
+    document.getElementById('pMeta').innerHTML = `<span class="pm-channel">${escHtml(data.author_name || '')}</span> &middot; YouTube`;
+  } catch {}
+}
+
+async function loadRelated(videoId) {
+  try {
+    const res = await fetch(`${API}/api/related/${videoId}`);
+    const data = await res.json();
+    const sidebar = document.getElementById('pSidebar');
+    if (!data.videos?.length) { sidebar.innerHTML = ''; return; }
+    sidebar.innerHTML = '<div class="sidebar-title">Related</div>' + data.videos.map(v => `
+      <div class="sidebar-card" onclick="navigate('/watch?v=${v.videoId}')">
+        <img class="sb-thumb" src="https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg" alt="" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg'">
+        <div class="sb-info">
+          <div class="sb-title">${escHtml(v.title)}</div>
+          <div class="sb-meta">${escHtml(v.channelTitle || '')}</div>
+          <div class="sb-meta">${v.viewCount || ''}${v.published ? ' · ' + v.published : ''}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch {}
+}
+
+setupShortsScroll();
+handleRoute();
+</script>
+</body>
+</html>
