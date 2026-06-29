@@ -251,11 +251,25 @@ app.get('/api/trending', async (_req, res) => {
   try {
     const allVideos: any[] = [];
     const channelEntries = Object.entries(POPULAR_CHANNELS);
+
+    const avatarPromises = channelEntries.map(async ([, id]) => {
+      try {
+        const body = JSON.stringify({ context: { client: { clientName: 'WEB', clientVersion: '2.20240101.00.00', hl: 'en', gl: 'PH' } }, browseId: id });
+        const data = await fetch(`https://www.youtube.com/youtubei/v1/browse?key=${YT_KEY}&prettyPrint=false`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' }, body,
+        }).then(r => r.json()).catch(() => null);
+        return data?.header?.c4TabbedHeaderRenderer?.avatar?.thumbnails?.slice(-1)?.[0]?.url || data?.metadata?.channelMetadataRenderer?.avatar?.thumbnails?.slice(-1)?.[0]?.url || '';
+      } catch { return ''; }
+    });
+    const avatars = await Promise.all(avatarPromises);
+    const avatarMap: Record<string, string> = {};
+    channelEntries.forEach(([name], i) => { if (avatars[i]) avatarMap[name] = avatars[i]; });
+
     const promises = channelEntries.map(async ([name, id]) => {
       try {
         const xml = await fetchXml(`https://www.youtube.com/feeds/videos.xml?channel_id=${id}`);
         const videos = parseRssFeed(xml).slice(0, 5);
-        videos.forEach((v) => { v.channelName = name; });
+        videos.forEach((v) => { v.channelName = name; v.channelThumbnail = avatarMap[name] || ''; });
         return videos;
       } catch { return []; }
     });
