@@ -410,7 +410,7 @@ app.get('/api/video/:id', async (req, res) => {
   try {
     const [oembed, html] = await Promise.all([
       fetchJson(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`),
-      fetchXml(`https://www.youtube.com/watch?v=${videoId}`),
+      httpsGet(`https://www.youtube.com/watch?v=${videoId}`, { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 'Accept-Language': 'en-US,en;q=0.9' }),
     ]);
     if (!oembed) return res.status(404).json({ message: 'Video not found.' });
     let description = '';
