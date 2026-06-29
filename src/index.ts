@@ -408,11 +408,23 @@ app.get('/api/search/shorts', async (req, res) => {
 app.get('/api/video/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const data = await fetchJson(
-      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
-    );
-    if (!data) return res.status(404).json({ message: 'Video not found.' });
-    res.json({ videoId, ...data });
+    const [oembed, html] = await Promise.all([
+      fetchJson(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`),
+      fetchXml(`https://www.youtube.com/watch?v=${videoId}`),
+    ]);
+    if (!oembed) return res.status(404).json({ message: 'Video not found.' });
+    let description = '';
+    const descMatch = html.match(/"shortDescription"\s*:\s*"(.*?)(?<!\\)"/);
+    if (descMatch) {
+      description = descMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    }
+    let viewCount = '';
+    const viewMatch = html.match(/"viewCount"\s*:\s*"(\d+)"/);
+    if (viewMatch) viewCount = viewMatch[1];
+    let lengthSeconds = '';
+    const lenMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
+    if (lenMatch) lengthSeconds = lenMatch[1];
+    res.json({ videoId, ...oembed, description, viewCount, lengthSeconds });
   } catch {
     res.status(500).json({ message: 'Error.' });
   }
