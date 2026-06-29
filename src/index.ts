@@ -408,31 +408,48 @@ app.get('/api/search/shorts', async (req, res) => {
 app.get('/api/video/:id', async (req, res) => {
   const videoId = req.params.id;
   try {
-    const [oembed, html] = await Promise.all([
-      fetchJson(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`),
-      httpsGet(`https://www.youtube.com/watch?v=${videoId}`, { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 'Accept-Language': 'en-US,en;q=0.9' }),
-    ]);
-    if (!oembed) return res.status(404).json({ message: 'Video not found.' });
     let description = '';
-    const descMarker = '"shortDescription":"';
-    const descIdx = html.indexOf(descMarker);
-    if (descIdx !== -1) {
-      const start = descIdx + descMarker.length;
-      let i = start;
-      while (i < html.length) {
-        if (html[i] === '\\') { i += 2; continue; }
-        if (html[i] === '"') break;
-        i++;
-      }
-      description = html.substring(start, i).replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-    }
+    let title = '';
+    let authorName = '';
     let viewCount = '';
-    const viewMatch = html.match(/"viewCount"\s*:\s*"(\d+)"/);
-    if (viewMatch) viewCount = viewMatch[1];
     let lengthSeconds = '';
-    const lenMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
-    if (lenMatch) lengthSeconds = lenMatch[1];
-    res.json({ videoId, ...oembed, description, viewCount, lengthSeconds });
+    let thumbnailUrl = '';
+
+    const body = JSON.stringify({
+      context: { client: { clientName: 'WEB', clientVersion: '2.20240101.00.00', hl: 'en', gl: 'PH' } },
+      videoId,
+    });
+
+    const [nextResp, oembed] = await Promise.all([
+      fetch(`https://www.youtube.com/youtubei/v1/next?key=${YT_KEY}&prettyPrint=false`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' }, body,
+      }).then(r => r.json()).catch(() => null),
+      fetchJson(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`),
+    ]);
+
+    const contents = nextResp?.contents?.twoColumnWatchNextResults?.results?.results?.contents || [];
+    for (const c of contents) {
+      if (c.videoPrimaryInfoRenderer) {
+        title = c.videoPrimaryInfoRenderer?.title?.runs?.map((r: any) => r.text).join('') || '';
+        viewCount = c.videoPrimaryInfoRenderer?.viewCount?.videoViewCountRenderer?.viewCount?.simpleText || '';
+      }
+      if (c.videoSecondaryInfoRenderer) {
+        description = c.videoSecondaryInfoRenderer?.attributedDescription?.content || '';
+        authorName = c.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.title?.runs?.map((r: any) => r.text).join('') || '';
+        thumbnailUrl = c.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.slice(-1)?.[0]?.url || '';
+      }
+    }
+
+    res.json({
+      videoId,
+      title: title || oembed?.title || '',
+      author_name: authorName || oembed?.author_name || '',
+      author_url: oembed?.author_url || '',
+      thumbnail_url: thumbnailUrl || oembed?.thumbnail_url || '',
+      description,
+      viewCount,
+      lengthSeconds,
+    });
   } catch {
     res.status(500).json({ message: 'Error.' });
   }
