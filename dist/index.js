@@ -401,9 +401,21 @@ app.get('/api/video/:id', async (req, res) => {
         if (!oembed)
             return res.status(404).json({ message: 'Video not found.' });
         let description = '';
-        const descMatch = html.match(/"shortDescription"\s*:\s*"(.*?)(?<!\\)"/);
-        if (descMatch) {
-            description = descMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        const descMarker = '"shortDescription":"';
+        const descIdx = html.indexOf(descMarker);
+        if (descIdx !== -1) {
+            const start = descIdx + descMarker.length;
+            let i = start;
+            while (i < html.length) {
+                if (html[i] === '\\') {
+                    i += 2;
+                    continue;
+                }
+                if (html[i] === '"')
+                    break;
+                i++;
+            }
+            description = html.substring(start, i).replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
         }
         let viewCount = '';
         const viewMatch = html.match(/"viewCount"\s*:\s*"(\d+)"/);
